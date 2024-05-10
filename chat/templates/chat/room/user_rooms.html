@@ -1,0 +1,58 @@
+{% extends "chat/base.html" %} {% block main_content %}
+<div class="topbar">
+  <h2>Your Rooms</h2>
+  <button id="newroom" class="circle small">
+    <i>add</i>
+  </button>
+</div>
+<ul>
+  {% for room in rooms %}
+  <li>
+    <a href="{% url "room" room_name=room.id %}">{{ room.name }}</a>
+  </li>
+  {% endfor %}
+</ul>
+<dialog id="newroomdialog">
+  <h5>New ChatRoom</h5>
+  <p>TIP: name has to be unique</p>
+  <form method="post">
+    {% csrf_token %}
+    <div class="field label border round fill">
+      <input required type="text" name="title" />
+      <label>Title</label>
+      <span class="helper">Enter title for your room</span>
+    </div>
+    <div class="field label border round fill">
+      <input required type="text" name="name" />
+      <label>Name</label>
+      <span class="helper">Enter name for your room</span>
+    </div>
+    <div class="buttonrow">
+      <button type="submit">Create</button>
+      <button id="cancelbtn" type="button">Cancel</button>
+    </div>
+  </form>
+</dialog>
+<script type="text/javascript">
+  const dialog = document.getElementById("newroomdialog");
+  const button = document.getElementById("newroom");
+  const cancelbtn = document.getElementById("cancelbtn");
+  button.addEventListener("click", () => {
+    dialog.showModal();
+  });
+  cancelbtn.addEventListener("click", () => {
+    dialog.close();
+  });
+</script>
+<style>
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .buttonrow {
+    display: flex;
+    justify-content: space-between;
+  }
+</style>
+{% endblock %}

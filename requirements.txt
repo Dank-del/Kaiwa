@@ -1,0 +1,4 @@
+Django
+channels[daphne]
+channels_redis
+pylint-django

@@ -1,0 +1,10 @@
+{% extends "chat/base.html" %}
+{% block main_content %}
+<h2>Direct Message with {{ receiver.username }}</h2>
+<p>{{ direct_message.content }}</p>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Send</button>
+</form>
+{% endblock %}

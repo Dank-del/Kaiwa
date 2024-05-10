@@ -1,0 +1,9 @@
+{% extends "chat/base.html" %}
+{% block main_content %}
+<h2>Exchange Message</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Send</button>
+</form>
+{% endblock %}
