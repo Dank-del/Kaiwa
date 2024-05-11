@@ -5,6 +5,26 @@ from.models import DirectMessage, Message, Room, RoomMembership
 from django.core.exceptions import PermissionDenied
 
 class ChatConsumer(AsyncWebsocketConsumer):
+
+    @database_sync_to_async
+    def get_room_messages(self, room_name):
+        try:
+            room = Room.objects.get(id=room_name)
+            # Fetch messages sorted by timestamp and limit the query to the last 50 messages
+            messages = Message.objects.filter(room=room).order_by("-timestamp")[:50]
+            return [
+                {
+                    "id": message.id,
+                    "content": message.content,
+                    "username": message.user.username,
+                    "user_id": message.user.id,
+                    "timestamp": message.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+                }
+                for message in messages
+            ][::-1]
+        except Room.DoesNotExist:
+            return []
+
     @database_sync_to_async
     def has_access_to_room(self, room_name):
         try:
@@ -15,16 +35,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return False
         except RoomMembership.DoesNotExist:
             return False
-        
+
     @database_sync_to_async
     def save_message(self, message, user):
-        Message.objects.create(user=user, room=self.room, content=message)
+        room = Room.objects.get(id=self.room_name)
+        Message.objects.create(user=user, room=room, content=message)
 
     async def connect(self):
         self.user = self.scope["user"]
         if not self.user.is_authenticated:
             raise PermissionDenied("You must be logged in to access this room.")
-        
+
         room_name = self.scope["url_route"]["kwargs"]["room_name"]
         if not await self.has_access_to_room(room_name):
             raise PermissionDenied("You do not have access to this room.")
@@ -37,10 +58,25 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         await self.accept()
 
+        # Send historical messages after joining
+        messages = await self.get_room_messages(room_name)
+        for message in messages:
+            await self.send(
+                text_data=json.dumps(
+                    {
+                        "message": message["content"],
+                        "sender": {
+                            "id": message["user_id"],
+                            "username": message["username"],
+                        },
+                    }
+                )
+            )
+
     async def disconnect(self, close_code):
         # Leave room group
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
-        
+
     # Receive message from WebSocket
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)

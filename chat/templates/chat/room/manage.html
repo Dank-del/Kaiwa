@@ -1,43 +1,51 @@
-{% extends "chat/base.html" %} {% block main_content %}
-<h1>Manage Room: {{ room.name }}</h1>
-<form id="manage-room-form">
-  <label for="action">Action:</label>
-  <select id="action" name="action">
-    <option value="add_member">Add Member</option>
-    <option value="remove_member">Remove Member</option>
-    <option value="edit_title">Edit Title</option>
-    <option value="create_invite_link">Create Invite Link</option>
-  </select>
-  <input type="hidden" id="room_id" name="room_id" value="{{ room.id }}" />
-  {% if action == 'add_member' %}
-  <label for="user_id">User ID:</label>
-  <input type="text" id="user_id" name="user_id" />
-  {% endif %} {% if action == 'edit_title' %}
-  <label for="title">New Title:</label>
-  <input type="text" id="title" name="title" />
-  {% endif %}
-  <button type="submit">Submit</button>
-</form>
+{% extends "chat/base.html" %}
+{% block main_content %}
 
-<script>
-  document
-    .getElementById("manage-room-form")
-    .addEventListener("submit", function (event) {
-      event.preventDefault();
-      const formData = new FormData(this);
-      fetch("/manage_room/", {
-        method: "POST",
-        body: formData,
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          if (data.status === "success") {
-            alert("Operation successful!");
-            // Optionally, refresh the page or redirect to another page
-          } else {
-            alert("An error occurred.");
-          }
-        });
-    });
-</script>
-{%endblock%}
+<h2>Manage Room: {{ room.title }}</h2>
+
+<div class="room-actions">
+  <form method="post" action="">
+      {% csrf_token %}
+      <h3>Add Member</h3>
+      <input type="hidden" name="action" value="add_member">
+      <div class="field label border round fill small">
+          <input type="number" id="user_id_add" name="user_id">
+          <label for="user_id_add">User ID</label>
+          <span class="helper">Enter the ID of the user to add</span>
+      </div>
+      <button type="submit">Add Member</button>
+  </form>
+
+  <form method="post" action="">
+      {% csrf_token %}
+      <h3>Remove Member</h3>
+      <input type="hidden" name="action" value="remove_member">
+      <div class="field label border round fill small">
+          <input type="number" id="user_id_rm" name="user_id">
+          <label for="user_id_rm">User ID</label>
+          <span class="helper">Enter the ID of the user to remove</span>
+      </div>
+      <button type="submit">Remove Member</button>
+  </form>
+
+  <form method="post" action="">
+      {% csrf_token %}
+      <h3>Edit Room Title</h3>
+      <input type="hidden" name="action" value="edit_title">
+      <div class="field label border round fill small">
+          <input type="text" id="title" name="title">
+          <label for="title">New Title</label>
+          <span class="helper">Specify the new title for the room</span>
+      </div>
+      <button type="submit">Update Title</button>
+  </form>
+
+  <form method="post" action="">
+      {% csrf_token %}
+      <h3>Create Invite Link</h3>
+      <input type="hidden" name="action" value="create_invite_link">
+      <button type="submit">Generate Link</button>
+  </form>
+</div>
+
+{% endblock %}

@@ -57,6 +57,13 @@ def exchange_message(request, dm_id):
 @login_required
 def manage_room(request, room_id):
     room = get_object_or_404(Room, pk=room_id)
+    admins = RoomAdmin.objects.filter(room=room, is_admin=True)
+    if request.user not in [admin.user for admin in admins]:
+        return render(
+            request,
+            "error.html",
+            {"message": "You do not have permission to manage this room"},
+        )
     if request.method == 'POST':
         action = request.POST.get('action')
         if action == 'add_member':
@@ -78,10 +85,7 @@ def manage_room(request, room_id):
         elif action == 'create_invite_link':
             link = uuid.uuid4()
             InviteLink.objects.create(room=room, link=link, expires_at=timezone.now() + timedelta(days=7))
-            return JsonResponse({'status': 'success'})
-    admins = RoomAdmin.objects.filter(room=room, is_admin=True)
-    if request.user not in [admin.user for admin in admins]:
-        return render(request, 'error.html', {'message': 'You do not have permission to manage this room'})
+            return JsonResponse({"status": "success"})
     return render(request, 'chat/room/manage.html', {'room': room})
 
 @login_required
@@ -106,8 +110,16 @@ def user_dms(request):
 def index(request):
     return render(request, "chat/index.html")
 
+
+@login_required
 def room(request, room_name):
-    return render(request, "chat/room.html", {"room_name": room_name})
+    room = Room.objects.get(id=room_name)
+    # print(vars(room))
+    return render(
+        request,
+        "chat/room.html",
+        {"room_name": room_name, "room": room, "user": request.user},
+    )
 
 def home(request):
     return render(request, 'chat/home.html')
