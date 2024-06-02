@@ -1,6 +1,6 @@
 <!-- base.html -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -28,9 +28,9 @@
             <i>chat_bubble</i>
             <div>Message</div>
         </a>
-        <a href="{% url 'share' %}" class="{% if request.path == '/chat/share/' %} active {% endif %}">
-            <i>share</i>
-            <div>Share</div>
+        <a href="{% url 'profile' %}" class="{% if request.path == '/chat/share/' %} active {% endif %}">
+            <i>account_circle</i>
+            <div>Profile</div>
         </a>
         {% else %}
         <a  href="{% url 'login' %}" class="{% if request.path == '/accounts/login/' %} active {% endif %}">
@@ -57,9 +57,9 @@
             <i>chat_bubble</i>
             <div>Message</div>
         </a>
-        <a href="{% url 'share' %}">
-            <i>share</i>
-            <div>Share</div>
+        <a href="{% url 'profile' %}">
+            <i>account_circle</i>
+            <div>Profile</div>
         </a>
         {% else %}
         <a  href="{% url 'login' %}" class="{% if request.path == '/accounts/login/' %} active {% endif %}">
@@ -83,9 +83,9 @@
             <i>chat_bubble</i>
             <div>Message</div>
         </a>
-        <a href="{% url 'share' %}">
-            <i>share</i>
-            <div>Share</div>
+        <a href="{% url 'profile' %}">
+            <i>account_circle</i>
+            <div>Profile</div>
         </a>
         {% else %}
         <a  href="{% url 'login' %}" class="{% if request.path == '/accounts/login/' %} active {% endif %}">

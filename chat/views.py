@@ -124,8 +124,8 @@ def room(request, room_name):
 def home(request):
     return render(request, 'chat/home.html')
 
-def search(request):
-    return render(request, 'chat/search.html')
+def profile(request):
+    return render(request, 'chat/profile.html')
 
 def share(request):
     return render(request, 'chat/share.html')
