@@ -1,5 +1,5 @@
 """
-ASGI config for chat_app project.
+ASGI config for kaiwa project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 
@@ -14,7 +14,7 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.security.websocket import AllowedHostsOriginValidator
 from chat.routing import websocket_urlpatterns
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "chat_app.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "kaiwa.settings")
 
 django_asgi_app = get_asgi_application()
 
