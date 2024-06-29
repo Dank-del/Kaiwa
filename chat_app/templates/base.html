@@ -1,0 +1,118 @@
+<!-- base.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="google" content="notranslate">
+    <title>{% block title %}Chat App{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/beercss@3.5.5/dist/cdn/beer.min.css" rel="stylesheet">
+    <script type="module" src="https://cdn.jsdelivr.net/npm/beercss@3.5.5/dist/cdn/beer.min.js"></script>
+    <script type="module"
+            src="https://cdn.jsdelivr.net/npm/material-dynamic-colors@1.1.0/dist/cdn/material-dynamic-colors.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js" integrity="sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI=" crossorigin="anonymous"></script>
+</head>
+<body class="dark">
+<nav class="left drawer l">
+    <header>
+        <nav>
+            <img src="https://www.beercss.com/favicon.png" class="circle">
+            <h6>Kaiwa</h6>
+        </nav>
+    </header>
+    {% if user.is_authenticated %}
+        <a href="{% url 'chats' %}" class="{% if request.path == '/chat/list/' %}
+        active {% endif %}">
+            <i>chat</i>
+            <span class="max">Chats</span>
+        </a>
+        <a href="{% url 'direct_messages' %}" class="{% if request.path == '/chat/rooms/dms/' %} active {% endif %}">
+            <i>chat_bubble</i>
+            <span>Message</span>
+        </a>
+        <a href="{% url 'profile' %}" class="{% if request.path == '/chat/profile/' %} active {% endif %}">
+            <i>account_circle</i>
+            <span>Profile</span>
+        </a>
+    {% else %}
+        <a href="{% url 'login' %}" class="{% if request.path == '/accounts/login/' %} active {% endif %}">
+            <i>login</i>
+            <span>Login</span>
+        </a>
+        <a href="{% url 'register' %}" class="{% if request.path == '/accounts/register/' %} active {% endif %}">
+            <i>app_registration</i>
+            <span>Register</span>
+        </a>
+    {% endif %}
+</nav>
+
+<nav class="left m">
+    <header>
+        <img src="https://www.beercss.com/favicon.png" class="circle">
+    </header>
+    {% if user.is_authenticated %}
+        <a href="{% url 'chats' %}" class="{% if request.path == '/chat/list/' %} active {% endif %}">
+            <i>forum</i>
+            <span>Chats</span>
+        </a>
+        <a href="{% url 'direct_messages' %}" class="{% if request.path == '/chat/rooms/dms/' %} active {% endif %}">
+            <i>chat_bubble</i>
+            <span>Message</span>
+        </a>
+        <a href="{% url 'profile' %}">
+            <i>account_circle</i>
+            <span>Profile</span>
+        </a>
+    {% else %}
+        <a href="{% url 'login' %}" class="{% if request.path == '/accounts/login/' %} active {% endif %}">
+            <i>login</i>
+            <span>Login</span>
+        </a>
+        <a href="{% url 'register' %}" class="{% if request.path == '/accounts/register/' %} active {% endif %}">
+            <i>app_registration</i>
+            <span>Register</span>
+        </a>
+    {% endif %}
+</nav>
+
+{% if not hide_bottom %}
+    <nav class="bottom s">
+        {% if user.is_authenticated %}
+            <a href="{% url 'chats' %}" class="{% if request.path == '/chat/list/' %} active {% endif %}">
+                <i>forum</i>
+                <span>Chats</span>
+            </a>
+            <a href="{% url 'direct_messages' %}" class="{% if request.path == '/chat/room/dms/' %} active {% endif %}">
+                <i>chat_bubble</i>
+                <span>Message</span>
+            </a>
+            <a href="{% url 'profile' %}" class="{% if request.path == '/chat/profile/' %} active {% endif %}">
+                <i>account_circle</i>
+                <span>Profile</span>
+            </a>
+        {% else %}
+            <a href="{% url 'login' %}" class="{% if request.path == '/accounts/login/' %} active {% endif %}">
+                <i>login</i>
+                <span>Login</span>
+            </a>
+            <a href="{% url 'register' %}" class="{% if request.path == '/accounts/register/' %} active {% endif %}">
+                <i>app_registration</i>
+                <span>Register</span>
+            </a>
+        {% endif %}
+    </nav>
+{% endif %}
+
+<main class="responsive">
+    {% block main_content %}{% endblock %}
+</main>
+<script>
+    document.addEventListener("wheel", function (event) {
+        if (document.activeElement.type === "number") {
+            document.activeElement.blur();
+        }
+    });
+</script>
+</body>
+</html>

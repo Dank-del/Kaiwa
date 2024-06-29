@@ -1,10 +1,17 @@
 import json
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
-from.models import DirectMessage, Message, Room, RoomMembership
+from .models import DirectMessage, Message, Room, RoomMembership, OnlineStatus
 from django.core.exceptions import PermissionDenied
 
+
 class ChatConsumer(AsyncWebsocketConsumer):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(args, kwargs)
+        self.user = None
+        self.room_group_name = None
+        self.room_name = None
 
     @database_sync_to_async
     def get_room_messages(self, room_name):
@@ -13,15 +20,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
             # Fetch messages sorted by timestamp and limit the query to the last 50 messages
             messages = Message.objects.filter(room=room).order_by("-timestamp")[:50]
             return [
-                {
-                    "id": message.id,
-                    "content": message.content,
-                    "username": message.user.username,
-                    "user_id": message.user.id,
-                    "timestamp": message.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
-                }
-                for message in messages
-            ][::-1]
+                       {
+                           "id": message.id,
+                           "content": message.content,
+                           "username": message.user.username,
+                           "user_id": message.user.id,
+                           "timestamp": message.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+                       }
+                       for message in messages
+                   ][::-1]
         except Room.DoesNotExist:
             return []
 
@@ -41,13 +48,20 @@ class ChatConsumer(AsyncWebsocketConsumer):
         room = Room.objects.get(id=self.room_name)
         Message.objects.create(user=user, room=room, content=message)
 
+    @database_sync_to_async
+    def set_online_status(self, user, is_online):
+        OnlineStatus.objects.update_or_create(user=user, defaults={"is_online": is_online})
+
     async def connect(self):
         self.user = self.scope["user"]
         if not self.user.is_authenticated:
             raise PermissionDenied("You must be logged in to access this room.")
 
+        print(self.user.id)
+        await self.set_online_status(self.user, True)
+
         room_name = self.scope["url_route"]["kwargs"]["room_name"]
-        if not await self.has_access_to_room(room_name):
+        if not self.has_access_to_room(room_name):
             raise PermissionDenied("You do not have access to this room.")
 
         self.room_name = room_name
@@ -75,10 +89,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
         # Leave room group
+        self.user = self.scope["user"]
+        await self.set_online_status(self.user, False)
+
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
 
     # Receive message from WebSocket
-    async def receive(self, text_data):
+    async def receive(self, text_data=None, bytes_data=None):
         text_data_json = json.loads(text_data)
         message = text_data_json["message"]
 
@@ -106,4 +123,5 @@ class ChatConsumer(AsyncWebsocketConsumer):
         message = event["message"]
 
         # Send message to WebSocket
-        await self.send(text_data=json.dumps({"message": message, "sender": {"id": self.user.id, "username": self.user.username}}))
+        await self.send(
+            text_data=json.dumps({"message": message, "sender": {"id": self.user.id, "username": self.user.username}}))
