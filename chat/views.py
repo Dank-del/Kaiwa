@@ -1,7 +1,9 @@
 import uuid
 from datetime import timedelta
 
+from django.contrib import messages
 from django.contrib.auth import login
+from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
@@ -10,6 +12,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 
 from chat.forms import DirectMessageForm, RoomForm
+from .forms import UserProfileForm
 from .models import DirectMessage, Room, RoomAdmin, RoomMembership, InviteLink
 
 
@@ -111,6 +114,7 @@ def manage_room(request, room_id):
 
     return render(request, 'chat/room/manage.html', context)
 
+
 @login_required
 def user_rooms(request):
     rooms = Room.objects.filter(users__in=[request.user])
@@ -148,8 +152,27 @@ def home(request):
     return render(request, 'chat/home.html')
 
 
+@login_required
 def profile(request):
-    return render(request, 'chat/profile.html')
+    if request.method == 'POST':
+        form = UserProfileForm(request.POST, request.FILES, instance=request.user)
+        if form.is_valid():
+            user = form.save(commit=False)
+
+            # Handle password change
+            new_password = form.cleaned_data.get('new_password')
+            if new_password:
+                user.set_password(new_password)
+                update_session_auth_hash(request, user)  # Keep the user logged in
+
+            user.save()
+
+            messages.success(request, 'Your profile was successfully updated!')
+            return redirect('profile')
+    else:
+        form = UserProfileForm(instance=request.user)
+
+    return render(request, 'chat/profile.html', {'form': form})
 
 
 def share(request):
