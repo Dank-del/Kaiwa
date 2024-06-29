@@ -1,15 +1,16 @@
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required, permission_required
-from django.http import JsonResponse
-from django.db.models import Q
-from chat.forms import DirectMessageForm, RoomForm
-from .models import DirectMessage, Room, RoomAdmin, RoomMembership, InviteLink
-from django.contrib.auth.models import User
 import uuid
 from datetime import timedelta
-from django.utils import timezone
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+
 from django.contrib.auth import login
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.models import User
+from django.db.models import Q
+from django.shortcuts import render, get_object_or_404, redirect
+from django.utils import timezone
+
+from chat.forms import DirectMessageForm, RoomForm
+from .models import DirectMessage, Room, RoomAdmin, RoomMembership, InviteLink
 
 
 def register(request):
@@ -62,37 +63,53 @@ def exchange_message(request, dm_id):
 @login_required
 def manage_room(request, room_id):
     room_data = get_object_or_404(Room, pk=room_id)
-    admins = RoomAdmin.objects.filter(room=room_data, is_admin=True)
-    if request.user not in [admin.user for admin in admins]:
-        return render(
-            request,
-            "error.html",
-            {"message": "You do not have permission to manage this room"},
-        )
+
+    # Check if user is admin
+    if not RoomAdmin.objects.filter(room=room_data, user=request.user, is_admin=True).exists():
+        return render(request, "error.html",
+                      {"message": "You do not have permission to manage this room"})
+
+    members = RoomMembership.objects.filter(room=room_data)
+    invite_links = InviteLink.objects.filter(room=room_data)
+
     if request.method == 'POST':
         action = request.POST.get('action')
+
         if action == 'add_member':
             user_id = request.POST.get('user_id')
             user = get_object_or_404(User, pk=user_id)
-            RoomMembership.objects.create(user=user, room=room_data)
-            return render(request, 'chat/room/manage.html', {'room': room_data})
+            RoomMembership.objects.get_or_create(user=user, room=room_data)
+
         elif action == 'remove_member':
             user_id = request.POST.get('user_id')
             user = get_object_or_404(User, pk=user_id)
-            membership = RoomMembership.objects.get(user=user, room=room_data)
-            membership.delete()
-            return render(request, 'chat/room/manage.html', {'room': room_data})
+            RoomMembership.objects.filter(user=user, room=room_data).delete()
+
         elif action == 'edit_title':
             title = request.POST.get('title')
             room_data.title = title
             room_data.save()
-            return render(request, 'chat/room/manage.html', {'room': room_data})
+
         elif action == 'create_invite_link':
             link = uuid.uuid4()
             InviteLink.objects.create(room=room_data, link=link, expires_at=timezone.now() + timedelta(days=7))
-            return render(request, 'chat/room/manage.html', {'room': room_data})
-    return render(request, 'chat/room/manage.html', {'room': room_data})
 
+        elif action == 'delete_invite_link':
+            link_id = request.POST.get('link_id')
+            invite_link = get_object_or_404(InviteLink, id=link_id, room=room_data)
+            invite_link.delete()
+
+        # Refresh the queryset after modifications
+        members = RoomMembership.objects.filter(room=room_data)
+        invite_links = InviteLink.objects.filter(room=room_data)
+
+    context = {
+        'room': room_data,
+        'members': members,
+        'invite_links': invite_links,
+    }
+
+    return render(request, 'chat/room/manage.html', context)
 
 @login_required
 def user_rooms(request):

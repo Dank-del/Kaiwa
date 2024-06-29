@@ -4,29 +4,31 @@
     <h4>Manage Room: {{ room.title }}</h4>
 
     <div class="room-actions">
-        <form method="post" action="">
-            {% csrf_token %}
-            <h6>Add Member</h6>
-            <input type="hidden" name="action" value="add_member">
-            <div class="field label border round fill small">
-                <input type="number" id="user_id_add" name="user_id">
-                <label for="user_id_add">User ID</label>
-                <span class="helper">Enter the ID of the user to add</span>
-            </div>
-            <button class="small small-elevate" type="submit">Add Member</button>
-        </form>
+        <div class="flex-container">
+            <form id="add-member" method="post" action="">
+                {% csrf_token %}
+                <h6>Add Member</h6>
+                <input type="hidden" name="action" value="add_member">
+                <div class="field label border round fill small">
+                    <input type="number" id="user_id_add" name="user_id">
+                    <label for="user_id_add">User ID</label>
+                    <span class="helper">Enter the ID of the user to add</span>
+                </div>
+                <button class="small small-elevate" type="submit">Add Member</button>
+            </form>
 
-        <form method="post" action="">
-            {% csrf_token %}
-            <h6>Remove Member</h6>
-            <input type="hidden" name="action" value="remove_member">
-            <div class="field label border round fill small">
-                <input type="number" id="user_id_rm" name="user_id">
-                <label for="user_id_rm">User ID</label>
-                <span class="helper">Enter the ID of the user to remove</span>
-            </div>
-            <button class="small small-elevate" type="submit">Remove Member</button>
-        </form>
+            <form id="rm-member" method="post" action="">
+                {% csrf_token %}
+                <h6>Remove Member</h6>
+                <input type="hidden" name="action" value="remove_member">
+                <div class="field label border round fill small">
+                    <input type="number" id="user_id_rm" name="user_id">
+                    <label for="user_id_rm">User ID</label>
+                    <span class="helper">Enter the ID of the user to remove</span>
+                </div>
+                <button class="small small-elevate" type="submit">Remove Member</button>
+            </form>
+        </div>
 
         <form method="post" action="">
             {% csrf_token %}
@@ -43,19 +45,63 @@
         <form class="link-gen" method="post" action="">
             {% csrf_token %}
             <h6>Create Invite Link</h6>
-            <div class="field border round fill small">
-                <input type="text" id="invite_link" name="invite_link" value="{{ room.invitelink.link }}" readonly>
-            </div>
+            <article class="link-list">
+                {% for invite in invite_links %}
+                    <div class="link-item">
+                        <a class="row wave">
+                            {{ invite.link }}
+                        </a>
+                        <div id="link-btn-row">
+                            <button class="small small-elevate" onclick="copyLink('{{ invite.link }}')">
+                                <i>content_copy</i>
+                            </button>
+                            <form method="post" action="" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="delete_invite_link">
+                                <input type="hidden" name="link_id" value="{{ invite.id }}">
+                                <button type="submit" class="small small-elevate">
+                                    <i>delete</i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="divider"></div>
+                {% endfor %}
+            </article>
             <input type="hidden" name="action" value="create_invite_link">
             <button class="small small-elevate" type="submit">Generate Link</button>
-            <button type="button" class="small small-elevate" onclick="copyLink()" id="copy-link">Copy Link</button>
         </form>
     </div>
     <style>
-        .room-actions {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
+        .link-list {
+            overflow: scroll;
+            max-height: 300px;
+        }
+
+
+        #add-member, #rm-member, form {
+           padding: 7px;
+        }
+
+        .link-item {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+        }
+
+        #link-btn-row {
+            display: flex;
+            flex-direction: row;
+            gap: 3px;
+            align-items: center;
+            justify-content: start;
+        }
+
+        .flex-container {
+            display: flex;
+            gap: 2px;
+            flex-direction: row;
         }
 
         h6 {
@@ -66,16 +112,11 @@
         h4 {
             margin-bottom: 10px
         }
-
-        #copy-link {
-            cursor: pointer;
-            outline: none;
-        }
     </style>
     <script>
-        function copyLink() {
-            console.log("ok")
-            navigator.clipboard.writeText("{{ room.invitelink.link }}").then(function () {
+        function copyLink(link) {
+            console.log("ok", link)
+            navigator.clipboard.writeText(link).then(function () {
                 console.log('Link copied to clipboard');
             }, function (err) {
                 console.error('Failed to copy link to clipboard', err);

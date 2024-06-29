@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% block main_content %}
     <div class="chat-container">
-    <header class="round">
+    <header class="round chat-header">
             <nav>
-                <button class="circle transparent">
+                <button onclick="history.back()" class="circle transparent">
                     <i>arrow_back</i>
                 </button>
                 <h5 class="max">{{ room.title }}</h5>
@@ -86,7 +86,11 @@
     </script>
 
     <style>
-    
+
+        .chat-header {
+            margin-top: 30px;
+        }
+
         .chat-container {
             display: flex;
             flex-direction: column;
@@ -97,8 +101,6 @@
         #chat-box {
             flex-grow: 1;
             overflow-y: auto;
-            padding: 10px;
-            margin-bottom: 10px;
         }
 
         .message-input {
