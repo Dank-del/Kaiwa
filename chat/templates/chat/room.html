@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block main_content %}
     <div class="chat-container">
-    <header class="round chat-header">
+        <header class="round chat-header">
             <nav>
                 <button onclick="history.back()" class="circle transparent">
                     <i>arrow_back</i>
@@ -38,9 +38,8 @@
 
     <script>
         const roomName = "{{ room_name }}"; // Passed from Django view
-        const chatSocket = new WebSocket(
-            "ws://" + window.location.host + "/ws/chat/" + roomName + "/"
-        );
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const chatSocket = new WebSocket(`${wsProtocol}//${window.location.host}/ws/chat/${roomName}/`);
 
         chatSocket.onmessage = function (e) {
             const data = JSON.parse(e.data);
