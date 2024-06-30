@@ -1,0 +1,14 @@
+[Unit]
+Description=Start Kaiwa Messaging Service
+After=network.target
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/var/www/kaiwa
+Environment="DJANGO_SETTINGS_MODULE=kaiwa.settings"
+Restart=on-failure
+ExecStart=/var/www/kaiwa/venv/bin/daphne -u /var/www/kaiwa/kaiwa.sock kaiwa.asgi:application -b 0.0.0.0 -p 2234
+
+[Install]
+WantedBy=multi-user.target
